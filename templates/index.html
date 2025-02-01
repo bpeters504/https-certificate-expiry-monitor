@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTTPS Certificate Expiry Monitor</title>
+    <link href="{{url_for('static', filename='styles/style.css')}}" rel="stylesheet" />
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+</head>
+<body>
+    <h1>HTTPS Certificate Expiry Monitor</h1>
+    <table>
+        <thead>
+            <tr>
+                {% for key in data[0].keys() %}
+                    {% if key == 'days_remaining' %}
+                        <th>days remaining</th>
+                    {% elif key != 'expiry_time' %}
+                        <th>{{ key }}</th>
+                    {% endif %}
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in data %}
+                <tr>
+                    {% for key, value in row.items() %}
+                        {% if key == 'days_remaining' %}
+                            {% set expiry_time = row['expiry_time'] %}
+                            {% if value < 7 %}
+                                <td class="critical" title="{{ expiry_time }}">{{ value }}</td>
+                            {% elif value < 14 %}
+                                <td class="warning" title="{{ expiry_time }}">{{ value }}</td>
+                            {% else %}
+                                <td title="{{ expiry_time }}">{{ value }}</td>
+                            {% endif %}
+                        {% elif key != 'expiry_time' %}
+                            <td>{{ value }}</td>
+                        {% endif %}
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+</body>
+</html>
