@@ -1,15 +1,18 @@
-# https-certificate-expiry-monitordff
+# https-certificate-expiry-monitor
 
-This is a Python web app to monitor your https website certificates expiration dates. It displays warning and alert colors based on number of days set in the .env file
-
+This is a Python web app to monitor your https website certificates expiration dates. It displays warning and critical colors based on number of days set in the .env file
+critical
+   
 ## Current working features
 - Checks sites added to the config.ini file and changes cell colors based on warning and alert days in config file.
 
 ## Todo
 - make it pretty
 - add ability to add sites (endpoints) via the web interface
-- add ability to set configuration settings such as number of days for warning and alert
-- add email alerts based on warning and alert days
+- add ability to set configuration settings such as number of days for warning and critical
+- add email alerts based on warning and critical days
+
+
 
 
 [Icon by Arkinasi](https://www.freepik.com/icons/ssl)
