@@ -18,6 +18,10 @@ def index():
 
 
 if __name__ == '__main__':
-    config.read('config.ini')
+    if not os.path.exists('config/config.ini'):
+        with open('config.ini.default', 'r') as default_file:
+            with open('config/config.ini', 'w') as config_file:
+                config_file.write(default_file.read())
+    config.read('config/config.ini')
     port = config['server']['port']
     serve(app, host="0.0.0.0", port=port)
