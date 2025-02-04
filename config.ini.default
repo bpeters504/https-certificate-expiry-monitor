@@ -1,5 +1,5 @@
 [default]
-endpoints = google.com
+endpoints = latenightlinux.com, jupiterbroadcasting.com:443, colonyevents.com 
 
 [server]
 port = 5000
