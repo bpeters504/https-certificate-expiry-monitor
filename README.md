@@ -12,7 +12,8 @@ critical
 - add ability to set configuration settings such as number of days for warning and critical
 - add email alerts based on warning and critical days
 
-
+## Screenshot
+![alt text](screenshot.png)
 
 
 [Icon by Arkinasi](https://www.freepik.com/icons/ssl)
