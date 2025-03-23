@@ -8,12 +8,22 @@ app = Flask(__name__)
 config = configparser.ConfigParser()
 endpoints = []
 
+# Read the application version from the version file
+def get_app_version():
+    version_file_path = 'config/version'
+    if os.path.exists(version_file_path):
+        with open(version_file_path, 'r') as version_file:
+            return version_file.read().strip()
+    return "Unknown Version"
+
+
 @app.route('/')
 @app.route('/index')
 def index():
     endpoints = [endpoint.strip() for endpoint in config["default"]['endpoints'].split(',')]
     data = checkcertificates.get_certificates_data(endpoints)
-    return render_template('index.html', data=data)
+    app_version = get_app_version()  # Get the application version
+    return render_template('index.html', data=data, app_version=app_version)
 
 
 
