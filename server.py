@@ -18,6 +18,8 @@ def index():
 
 
 if __name__ == '__main__':
+    if not os.path.exists('config'):
+        os.makedirs('config')
     if not os.path.exists('config/config.ini'):
         with open('config.ini.default', 'r') as default_file:
             with open('config/config.ini', 'w') as config_file:
