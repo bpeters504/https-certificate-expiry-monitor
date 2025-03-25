@@ -3,10 +3,3 @@ endpoints = latenightlinux.com, jupiterbroadcasting.com:443, colonyevents.com
 
 [server]
 port = 5000
-
-[warnings]
-email = false
-
-[critical]
-email = false
-
