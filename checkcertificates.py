@@ -16,21 +16,24 @@ EXIT_ERROR = 2
 EXIT_NO_HOST_LIST = 9
 
 def make_host_port_pair(endpoint):
-    host, _, specified_port = endpoint.partition(':')
-    port = int(specified_port or DEFAULT_HTTPS_PORT)
-
-    return host, port
+    host, port, id = endpoint.split(':')
+    port = int(port or DEFAULT_HTTPS_PORT)  # Default to HTTPS port if not specified
+    return host, port, int(id)
 
 def pluralise(singular, count):
     return '{} {}{}'.format(count, singular, '' if count == 1 else 's')
 
 def get_certificate_expiry_date_time(context, host, port):
-    with socket.create_connection((host, port), SOCKET_CONNECTION_TIMEOUT_SECONDS) as tcp_socket:
-        with context.wrap_socket(tcp_socket, server_hostname=host) as ssl_socket:
-            # certificate_info is a dict with lots of information about the certificate
-            certificate_info = ssl_socket.getpeercert()
-            exp_date_text = certificate_info['notAfter']
-            return datetime.datetime.fromtimestamp(ssl.cert_time_to_seconds(exp_date_text), datetime.timezone.utc)
+    try:
+        with socket.create_connection((host, port), SOCKET_CONNECTION_TIMEOUT_SECONDS) as tcp_socket:
+            with context.wrap_socket(tcp_socket, server_hostname=host) as ssl_socket:
+                # certificate_info is a dict with lots of information about the certificate
+                certificate_info = ssl_socket.getpeercert()
+                exp_date_text = certificate_info['notAfter']
+                return datetime.datetime.fromtimestamp(ssl.cert_time_to_seconds(exp_date_text), datetime.timezone.utc)
+    except Exception as e:
+        #raise RuntimeError(f"Failed to retrieve certificate for {host}:{port} - {e}")
+        return datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=101)
 
 
 def format_time_remaining(time_remaining):
@@ -76,16 +79,15 @@ def check_certificates(endpoints):
     with concurrent.futures.ThreadPoolExecutor(max_workers=WORKER_THREAD_COUNT) as executor:
         futures = {
             executor.submit(get_certificate_expiry_date_time, context, host, port):
-            (host, port) for host, port in host_port_pairs
+            (host, port, id) for host, port, id in host_port_pairs
         }
 
         endpoint_count = len(endpoints)
         err_count = 0
         min_days = math.inf
-        max_host_port_len = max([len(format_host_port(host, port)) for host, port in host_port_pairs])
-        print('Checking {}...'.format(pluralise('endpoint', endpoint_count)))
+        max_host_port_len = max([len(format_host_port(host, port)) for host, port, _ in host_port_pairs])
         for future in concurrent.futures.as_completed(futures):
-            host, port = futures[future]
+            host, port, id = futures[future]
             try:
                 expiry_time = future.result()
             except Exception as ex:
@@ -110,33 +112,28 @@ def get_certificates_data(endpoints):
     with concurrent.futures.ThreadPoolExecutor(max_workers=WORKER_THREAD_COUNT) as executor:
         futures = {
             executor.submit(get_certificate_expiry_date_time, context, host, port):
-            (host, port) for host, port in host_port_pairs
+            (host, port, id) for host, port, id in host_port_pairs
         }
 
-        endpoint_count = len(endpoints)
-        err_count = 0
-        min_days = math.inf
-        max_host_port_len = max([len(format_host_port(host, port)) for host, port in host_port_pairs])
-        #print('Checking {}...'.format(pluralise('endpoint', endpoint_count)))
         for future in concurrent.futures.as_completed(futures):
-            host, port = futures[future]
+            host, port, id = futures[future]
             try:
                 expiry_time = future.result()
             except Exception as ex:
-                err_count += 1
-                print('{} ERROR {}'.format(format_host_port(host, port).ljust(max_host_port_len), ex))
+                print('{} ERROR {}'.format(format_host_port(host, port), ex))
             else:
                 time_remaining = expiry_time - datetime.datetime.now(datetime.timezone.utc)
-                time_remaining_txt = format_time_remaining(time_remaining)
                 days_remaining = time_remaining.days
-                min_days = min(min_days, days_remaining)
 
-                record={"host": host, "port": str(port), "expiry_time": str(expiry_time), "days_remaining": days_remaining}
+                record = {
+                    "id": id,
+                    "host": host,
+                    "port": str(port),
+                    "expiry_time": str(expiry_time),
+                    "days_remaining": days_remaining
+                }
                 out_list.append(record)
     return out_list
-
-    exit_code = get_exit_code(err_count, min_days)
-    sys.exit(exit_code)
 
 if __name__ == '__main__':
     endpoints = sys.argv[1:]
@@ -145,9 +142,7 @@ if __name__ == '__main__':
         records = check_certificates(endpoints)
         print(records)
     else:
-        endpoints = ['www.google.com:443']
+        endpoints = ['www.google.com:443:1']
         records = check_certificates(endpoints)
         print(records)
-        #print('Usage: {} <list of endpoints>'.format(sys.argv[0]))
-        #sys.exit(EXIT_NO_HOST_LIST)
-
+        
