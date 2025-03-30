@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Endpoints</title>
+    <link href="{{url_for('static', filename='styles/style.css')}}" rel="stylesheet" />
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+</head>
+<body>
+    <h1>Edit Endpoints</h1>
+    <table class="endpoints-table">
+        <thead>
+            <tr>
+                <th class="hidden">id</th>
+                <th>host</th>
+                <th>port</th>
+                <th>actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for endpoint in endpoints %}
+                <tr>
+                    <form method="POST" action="{{ url_for('update_endpoint', id=endpoint['id']) }}">
+                        <td class="hidden">{{ endpoint['id'] }}</td>
+                        <td>
+                            <input class="small-input" type="text" name="host" value="{{ endpoint['host'] }}" required />
+                        </td>
+                        <td>
+                            <input class="small-input" type="text" name="port" value="{{ endpoint['port'] }}" required />
+                        </td>
+                        <td class="nowrap">
+                            <button class="save-button" type="submit">
+                                <img src="{{ url_for('static', filename='save-icon.svg') }}" alt="Save" class="save-icon" />
+                            </button>
+                            <button class="delete-button" type="button" onclick='window.location.href="{{ url_for("delete_endpoint", id=endpoint["id"]) }}"'>
+                                <img src="{{ url_for('static', filename='delete-icon.svg') }}" alt="Delete" class="delete-icon" />
+                            </button>
+                        </td>
+                    </form>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h2>Add New Endpoint</h2>
+    <form method="POST" action="{{ url_for('add_endpoint') }}" class="add-endpoint-form">
+        <label for="host">Host:</label>
+        <input class="small-input" type="text" id="host" name="host" required />
+        <label for="port">Port:</label>
+        <input class="small-input" type="text" id="port" name="port" required />
+        <button type="submit" class="save-button">
+            <img src="{{ url_for('static', filename='save-icon.svg') }}" alt="Save" class="save-icon" />
+        </button>
+    </form>
+
+    <!-- Link to the Cert Dashboard page -->
+    <div class="cert-dashboard-link">
+        <a href="{{ url_for('index') }}" class="link">Certificates Dashboard</a>
+    </div>
+
+    <footer>
+        <p>App Version: {{ app_version }}</p>
+    </footer>
+</body>
+</html>

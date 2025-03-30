@@ -26,7 +26,7 @@ h1 {
 
 input, button {
     font-size: 1.5rem;
-    padding: 1rem;
+    padding: 0;
     border-radius: 5px;
     border: 1px solid #444;
     background-color: #2d2d2d;
@@ -66,14 +66,117 @@ td {
 }
 
 .warning {
-    background-color: #ff9800;
+    background-color: #FFA500;
     color: #fff;
     font-weight: bold;
 }
 
 .critical {
-    background-color: #f44336;
+    background-color: #CC0000;
     color: #fff;
     font-weight: bold;
 }
 
+.link {
+    color: #0f97f1;
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.link:visited {
+    color: #af24af;
+}
+
+.link:hover {
+    color: #ffffff;
+    text-decoration: underline;
+}
+
+
+.small-input {
+    font-size: 1rem; /* Adjust font size */
+    padding: 0; /* Adjust padding */
+    border-radius: 3px; /* Optional: smaller border radius */
+    border: 1px solid #444;
+    background-color: #2d2d2d;
+    color: #dcdcdc;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.small-input:focus {
+    background-color: #444;
+    color: #fff;
+}
+
+/* General button styles */
+button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0; /* Adjust padding to align with input fields */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 2.5rem; /* Match the height of the input fields */
+    width: 2.5rem; /* Ensure buttons are square */
+    transition: transform 0.2s;
+}
+
+button:hover {
+    transform: scale(1.1); /* Slight zoom effect on hover */
+}
+
+/* Save and Delete icon styles */
+.save-icon  {
+    width: 1.5rem; /* Adjust size to fit within the button */
+    height: 1.5rem;
+    filter: invert(70%); /* Makes the icon visible on dark backgrounds */
+    transition: filter 0.3s;
+    padding: 0
+}
+.delete-icon {
+    width: 1.5rem; /* Adjust size to fit within the button */
+    height: 1.5rem;
+    transition: filter 0.3s;
+    padding: 0
+}
+
+button:hover .save-icon,
+button:hover .delete-icon {
+    filter: invert(100%); /* Brightens the icon on hover */
+}
+
+.nowrap {
+    white-space: nowrap;
+}
+
+.nowrap button {
+    display: inline-block;
+    margin-right: 5px; /* Optional: Add spacing between buttons */
+}
+
+.add-endpoint-form {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Adds spacing between form elements */
+}
+
+.add-endpoint-form input {
+    flex: 1; /* Ensures inputs take up available space */
+}
+
+.add-endpoint-form .save-button {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+}
+
+.add-endpoint-form .save-icon {
+    width: 24px;
+    height: 24px;
+}
+
+.hidden {
+    display: none;
+}

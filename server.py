@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect, url_for
 import checkcertificates
 from waitress import serve
 import os
@@ -19,7 +19,6 @@ def backup_config():
         os.rename('config/config.ini', f'config/config_{timestamp}.ini.bak')
         with open('config/config.ini', 'w') as configfile:
             config.write(configfile)
-        
 
 
 # Read the application version from the version file
@@ -34,19 +33,61 @@ def get_app_version():
 def get_endpoints():
     conn = sqlite3.connect('config/endpoints.db')
     cursor = conn.cursor()
-    cursor.execute('SELECT host, port FROM endpoints')
+    cursor.execute('SELECT host, port, id FROM endpoints')
     endpoints = cursor.fetchall()
     conn.close()
-    return [f"{host}:{port}" for host, port in endpoints]
+    return endpoints
+
+@app.route('/add_endpoint', methods=['POST'])
+def add_endpoint():
+    host = request.form['host']
+    port = request.form['port']
+    conn = sqlite3.connect('config/endpoints.db')
+    cursor = conn.cursor()
+    cursor.execute('INSERT INTO endpoints (host, port) VALUES (?, ?)', (host, port))
+    conn.commit()
+    conn.close()
+    return redirect(url_for('edit_endpoints'))
+
+@app.route('/update_endpoint/<int:id>', methods=['POST'])
+def update_endpoint(id):
+    host = request.form['host']
+    port = request.form['port']
+    conn = sqlite3.connect('config/endpoints.db')
+    cursor = conn.cursor()
+    cursor.execute('UPDATE endpoints SET host = ?, port = ? WHERE id = ?', (host, port, id))
+    conn.commit()
+    conn.close()
+    return redirect(url_for('edit_endpoints'))
+
+@app.route('/delete_endpoint/<int:id>', methods=['GET'])
+def delete_endpoint(id):
+    conn = sqlite3.connect('config/endpoints.db')
+    cursor = conn.cursor()
+    cursor.execute('DELETE FROM endpoints WHERE id = ?', (id,))
+    conn.commit()
+    conn.close()
+    return redirect(url_for('edit_endpoints'))
+
+@app.route('/edit_endpoints')
+def edit_endpoints():
+    conn = sqlite3.connect('config/endpoints.db')
+    cursor = conn.cursor()
+    cursor.execute('SELECT id, host, port FROM endpoints')
+    endpoints = [{'id': row[0], 'host': row[1], 'port': row[2]} for row in cursor.fetchall()]
+    conn.close()
+    app_version = get_app_version()
+    return render_template('edit_endpoints.html', endpoints=endpoints, app_version=app_version)
 
 
 @app.route('/')
 @app.route('/index')
 def index():
     endpoints = get_endpoints()
+    endpoints = [f"{host}:{port}:{id}" for host, port, id in endpoints]  # Include all three values
     data = checkcertificates.get_certificates_data(endpoints)
     app_version = get_app_version()  # Get the application version
-    return render_template('index.html', data=data, app_version=app_version)
+    return render_template('index.html', data=data, app_version=app_version, warn_days=int(warn_days), critical_days=int(critical_days))
 
 # create sqlite3 database and table
 def init_db(option):
@@ -54,7 +95,7 @@ def init_db(option):
     cursor = conn.cursor()
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS endpoints (
-            id INTEGER PRIMARY KEY,
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
             host TEXT,
             port TEXT
         )
@@ -87,6 +128,13 @@ def init_db(option):
         with open('config/config.ini', 'w') as configfile:
             config.write(configfile)
 
+def remove_endpoint(id):
+    conn = sqlite3.connect('config/endpoints.db')
+    cursor = conn.cursor()
+    cursor.execute('DELETE FROM endpoints WHERE id = ?', (id,))
+    conn.commit()
+    conn.close()
+
 def add_endpoint(host, port):
     conn = sqlite3.connect('config/endpoints.db')
     cursor = conn.cursor()
@@ -104,5 +152,7 @@ if __name__ == '__main__':
     if not os.path.exists('config/config.ini') and not os.path.exists('config/endpoints.db'):
         init_db("default")
     config.read('config/config.ini')
+    warn_days = config['default']['warn_days']
+    critical_days = config['default']['critical_days']
     port = config['server']['port']
     serve(app, host="0.0.0.0", port=port)

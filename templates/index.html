@@ -9,12 +9,14 @@
 </head>
 <body>
     <h1>Certificate Dashboard</h1>
-    <table>
+    <table class="endpoints-table">
         <thead>
             <tr>
                 {% for key in data[0].keys() %}
                     {% if key == 'days_remaining' %}
                         <th>days remaining</th>
+                    {% elif key == 'id' %}
+                        <th class="hidden">{{ key }}</th>
                     {% elif key != 'expiry_time' %}
                         <th>{{ key }}</th>
                     {% endif %}
@@ -27,13 +29,17 @@
                     {% for key, value in row.items() %}
                         {% if key == 'days_remaining' %}
                             {% set expiry_time = row['expiry_time'] %}
-                            {% if value < 7 %}
+                            {% if 0 < value < critical_days %}
                                 <td class="critical" title="{{ expiry_time }}">{{ value }}</td>
-                            {% elif value < 14 %}
+                            {% elif 0 < value < warn_days %}
                                 <td class="warning" title="{{ expiry_time }}">{{ value }}</td>
+                            {% elif value == -102 %}
+                                <td class="critical" title="{{ expiry_time }}">Connection Error</td>
                             {% else %}
                                 <td title="{{ expiry_time }}">{{ value }}</td>
                             {% endif %}
+                        {% elif key == 'id' %}
+                            <td class="hidden">{{ value }}</td>
                         {% elif key != 'expiry_time' %}
                             <td>{{ value }}</td>
                         {% endif %}
@@ -42,6 +48,10 @@
             {% endfor %}
         </tbody>
     </table>
+    <!-- Link to the Edit Endpoints page -->
+    <div class="edit-endpoints-link">
+        <a href="{{ url_for('edit_endpoints') }}" class="link">Edit Endpoints</a>
+    </div>
     <footer>
         <p>App Version: {{ app_version }}</p>
     </footer>
