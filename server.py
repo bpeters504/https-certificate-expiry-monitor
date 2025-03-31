@@ -10,6 +10,7 @@ from datetime import datetime
 app = Flask(__name__)
 config = configparser.ConfigParser()
 default_endpoints = ["latenightlinux.com", "jupiterbroadcasting.com:443", "colonyevents.com"]
+app_version = '2.0.1'
 
 # make a backup of config.ini
 def backup_config():
@@ -20,14 +21,6 @@ def backup_config():
         with open('config/config.ini', 'w') as configfile:
             config.write(configfile)
 
-
-# Read the application version from the version file
-def get_app_version():
-    version_file_path = 'config/version'
-    if os.path.exists(version_file_path):
-        with open(version_file_path, 'r') as version_file:
-            return version_file.read().strip()
-    return "Unknown Version"
 
 # read the endpoints from the database
 def get_endpoints():
@@ -76,7 +69,6 @@ def edit_endpoints():
     cursor.execute('SELECT id, host, port FROM endpoints')
     endpoints = [{'id': row[0], 'host': row[1], 'port': row[2]} for row in cursor.fetchall()]
     conn.close()
-    app_version = get_app_version()
     return render_template('edit_endpoints.html', endpoints=endpoints, app_version=app_version)
 
 
@@ -86,7 +78,6 @@ def index():
     endpoints = get_endpoints()
     endpoints = [f"{host}:{port}:{id}" for host, port, id in endpoints]  # Include all three values
     data = checkcertificates.get_certificates_data(endpoints)
-    app_version = get_app_version()  # Get the application version
     return render_template('index.html', data=data, app_version=app_version, warn_days=int(warn_days), critical_days=int(critical_days))
 
 # create sqlite3 database and table
@@ -152,7 +143,7 @@ if __name__ == '__main__':
     if not os.path.exists('config/config.ini') and not os.path.exists('config/endpoints.db'):
         init_db("default")
     config.read('config/config.ini')
-    warn_days = config['default']['warn_days']
-    critical_days = config['default']['critical_days']
+    warn_days = config['default'].get('warn_days', '14')
+    critical_days = config['default'].get('critical_days', '7')
     port = config['server']['port']
     serve(app, host="0.0.0.0", port=port)

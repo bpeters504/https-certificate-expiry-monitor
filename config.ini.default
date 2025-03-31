@@ -1,5 +1,7 @@
 [default]
-endpoints = latenightlinux.com, jupiterbroadcasting.com:443, colonyevents.com 
+endpoints = latenightlinux.com, jupiterbroadcasting.com:443, colonyevents.com
+warn_days = 14
+critical_days = 7
 
 [server]
 port = 5000
