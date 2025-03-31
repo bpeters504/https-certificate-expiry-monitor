@@ -10,7 +10,7 @@ from datetime import datetime
 app = Flask(__name__)
 config = configparser.ConfigParser()
 default_endpoints = ["latenightlinux.com", "jupiterbroadcasting.com:443", "colonyevents.com"]
-app_version = '2.0.1'
+app_version = '2.0.2'
 
 # make a backup of config.ini
 def backup_config():
